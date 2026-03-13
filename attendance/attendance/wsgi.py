@@ -1,13 +1,15 @@
 """
 WSGI config for attendance project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
 """
 
 import os
+import sys
+from pathlib import Path
+
+# Add the Django project root (the folder containing manage.py) to sys.path
+# so that 'attendance.settings' can be found when Vercel runs this file
+# from the repo root as a serverless function.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from django.core.wsgi import get_wsgi_application
 
