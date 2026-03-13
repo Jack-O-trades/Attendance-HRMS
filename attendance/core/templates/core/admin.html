@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — EduTrack</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
+        .topbar { background: #1b3a6b; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .topbar h1 { font-size: 18px; margin: 0; }
+        .topbar a { color: #f0c040; font-size: 14px; text-decoration: none; }
+        .topbar a:hover { text-decoration: underline; }
+        .navbar { background: #e8e8e8; padding: 8px 20px; border-bottom: 1px solid #ccc; }
+        .navbar a { margin-right: 16px; text-decoration: none; color: #1b3a6b; font-size: 14px; font-weight: bold; }
+        .navbar a:hover { text-decoration: underline; }
+        .content { padding: 20px; max-width: 1100px; margin: 0 auto; }
+        h2 { color: #1b3a6b; border-bottom: 2px solid #1b3a6b; padding-bottom: 6px; margin-bottom: 14px; }
+        h3 { color: #333; margin-bottom: 10px; }
+        .stats { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+        .stat-box { background: white; border: 1px solid #ccc; border-radius: 4px; padding: 14px 22px; text-align: center; min-width: 120px; }
+        .stat-box .num { font-size: 28px; font-weight: bold; color: #1b3a6b; }
+        .stat-box .lbl { font-size: 12px; color: #666; margin-top: 4px; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-bottom: 16px; }
+        th { background: #1b3a6b; color: white; padding: 9px 12px; text-align: left; font-size: 13px; }
+        td { padding: 9px 12px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: middle; }
+        tr:hover td { background: #f9f9f9; }
+        .badge-present { background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+        .badge-absent { background: #f8d7da; color: #721c24; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+        .badge-pending { background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+        .badge-approved { background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+        .badge-denied { background: #f8d7da; color: #721c24; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+        .msg-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 8px 12px; border-radius: 4px; margin-bottom: 14px; font-size: 14px; }
+        .msg-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 8px 12px; border-radius: 4px; margin-bottom: 14px; font-size: 14px; }
+        .search-form { display: flex; gap: 8px; margin-bottom: 14px; }
+        .search-form input, .search-form select { padding: 7px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        .btn { padding: 5px 12px; background: #1b3a6b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; text-decoration: none; display: inline-block; }
+        .btn:hover { background: #1e56a0; }
+        .btn-outline { background: white; color: #1b3a6b; border: 1px solid #1b3a6b; }
+        .btn-outline:hover { background: #f0f0f0; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #b02a37; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; }
+        .btn-sm { padding: 4px 9px; font-size: 12px; }
+        .card { background: white; border: 1px solid #ccc; border-radius: 4px; padding: 16px; margin-bottom: 20px; }
+        .form-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+        .form-row .fg { display: flex; flex-direction: column; min-width: 140px; flex: 1; }
+        .form-row label { font-size: 12px; font-weight: bold; margin-bottom: 3px; }
+        .form-row input { padding: 7px 9px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .badge-pending-badge { background: #fff3cd; color: #856404; border: 1px solid #ffc107; padding: 2px 9px; border-radius: 10px; font-size: 12px; font-weight: bold; margin-left: 6px; }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <h1>🏫 EduTrack — Admin Panel</h1>
+    <span>Logged in as: <strong>{{ request.user.get_full_name }}</strong> &nbsp;|&nbsp; <a href="{% url 'logout' %}">Logout</a></span>
+</div>
+
+<div class="navbar">
+    <a href="#" onclick="showSection('overview'); return false;">Dashboard</a>
+    <a href="#" onclick="showSection('students'); return false;">
+        Students {% if pending_students.filter.0 %}{% endif %}
+    </a>
+    <a href="#" onclick="showSection('teachers'); return false;">Teachers</a>
+    <a href="#" onclick="showSection('attendance'); return false;">Attendance</a>
+    <a href="#" onclick="showSection('pending'); return false;">
+        Pending Approvals {% if pending_count > 0 %}<span class="badge-pending-badge">{{ pending_count }}</span>{% endif %}
+    </a>
+</div>
+
+<div class="content">
+
+    {% for message in messages %}
+    <div class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}">{{ message }}</div>
+    {% endfor %}
+
+    <!-- OVERVIEW -->
+    <div id="sec-overview" class="section {% if tab == 'overview' or not tab %}active{% endif %}">
+        <h2>Dashboard Overview</h2>
+        <div class="stats">
+            <div class="stat-box"><div class="num">{{ total_students }}</div><div class="lbl">Students</div></div>
+            <div class="stat-box"><div class="num">{{ total_teachers }}</div><div class="lbl">Teachers</div></div>
+            <div class="stat-box"><div class="num">{{ total_attendance }}</div><div class="lbl">Attendance Records</div></div>
+            <div class="stat-box"><div class="num">{{ present_count }}</div><div class="lbl">Times Present</div></div>
+            <div class="stat-box"><div class="num">{{ pending_count }}</div><div class="lbl">Pending Approvals</div></div>
+        </div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div id="sec-students" class="section {% if tab == 'students' %}active{% endif %}">
+        <h2>All Students</h2>
+
+        <!-- Add Student Form -->
+        <div class="card">
+            <h3>Add Student Directly</h3>
+            <form method="post" action="{% url 'admin_add_student' %}">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="fg"><label>First Name*</label><input type="text" name="first_name" required></div>
+                    <div class="fg"><label>Last Name*</label><input type="text" name="last_name" required></div>
+                    <div class="fg"><label>Username*</label><input type="text" name="username" required></div>
+                    <div class="fg"><label>Reg No.*</label><input type="text" name="registration_number" required></div>
+                    <div class="fg"><label>Email</label><input type="email" name="email"></div>
+                    <div class="fg"><label>Phone</label><input type="text" name="phone"></div>
+                    <div class="fg"><label>Password*</label><input type="password" name="password" required></div>
+                </div>
+                <button type="submit" class="btn btn-success">Add Student</button>
+            </form>
+        </div>
+
+        <!-- Student list (pending section) -->
+        {% if pending_students %}
+        <h3>Pending Student Registrations</h3>
+        <table>
+            <thead><tr><th>Name</th><th>Username</th><th>Reg No.</th><th>Email</th><th>Status</th><th>Submitted</th><th>Action</th></tr></thead>
+            <tbody>
+                {% for p in pending_students %}
+                <tr>
+                    <td>{{ p.first_name }} {{ p.last_name }}</td>
+                    <td>{{ p.username }}</td>
+                    <td>{{ p.registration_number|default:"—" }}</td>
+                    <td>{{ p.email|default:"—" }}</td>
+                    <td><span class="badge-{{ p.status }}">{{ p.status|capfirst }}</span></td>
+                    <td style="font-size:12px;color:#666;">{{ p.created_at|date:"d M Y, H:i" }}</td>
+                    <td>
+                        {% if p.status == 'pending' %}
+                        <span id="yn-s{{ p.id }}" style="display:inline;">
+                            <button class="btn btn-success btn-sm" onclick="twostep('s{{ p.id }}')">Yes</button>
+                            <button class="btn btn-danger btn-sm" style="margin-left:4px;">No</button>
+                        </span>
+                        <span id="ad-s{{ p.id }}" style="display:none;">
+                            <small style="color:#666;">Confirm:&nbsp;</small>
+                            <form method="post" action="{% url 'admin_approve_registration' p.id %}" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="approve" class="btn btn-success btn-sm">Approve</button></form>
+                            <form method="post" action="{% url 'admin_approve_registration' p.id %}" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="deny" class="btn btn-danger btn-sm">Deny</button></form>
+                            <button class="btn btn-outline btn-sm" style="margin-left:4px;" onclick="canceltwostep('s{{ p.id }}')">Cancel</button>
+                        </span>
+                        {% else %}<span class="badge-{{ p.status }}">{{ p.status|capfirst }}</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        <h3>Registered Students</h3>
+        <form method="get" action="{% url 'admin_dashboard' %}" class="search-form">
+            <input type="hidden" name="tab" value="students">
+            <input type="text" name="sq" placeholder="Search..." value="{{ student_query }}" style="flex:1;">
+            <button type="submit" class="btn">Search</button>
+            {% if student_query %}<a href="?tab=students" class="btn btn-outline">Clear</a>{% endif %}
+        </form>
+        <table>
+            <thead><tr><th>#</th><th>First Name</th><th>Last Name</th><th>Username</th><th>Reg No.</th><th>Email</th><th>Phone</th><th>Remove</th></tr></thead>
+            <tbody>
+                {% for s in students %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ s.user.first_name }}</td>
+                    <td>{{ s.user.last_name }}</td>
+                    <td>{{ s.user.username }}</td>
+                    <td>{{ s.registration_number }}</td>
+                    <td>{{ s.user.email|default:"—" }}</td>
+                    <td>{{ s.user.phone|default:"—" }}</td>
+                    <td>
+                        <form method="post" action="{% url 'admin_remove_user' s.user.id %}" onsubmit="return confirm('Remove {{ s.user.get_full_name }}?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8">No students found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- TEACHERS -->
+    <div id="sec-teachers" class="section {% if tab == 'teachers' %}active{% endif %}">
+        <h2>All Teachers</h2>
+
+        <!-- Add Teacher Form -->
+        <div class="card">
+            <h3>Add Teacher Directly</h3>
+            <form method="post" action="{% url 'admin_add_teacher' %}">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="fg"><label>First Name*</label><input type="text" name="first_name" required></div>
+                    <div class="fg"><label>Last Name*</label><input type="text" name="last_name" required></div>
+                    <div class="fg"><label>Username*</label><input type="text" name="username" required></div>
+                    <div class="fg"><label>Email</label><input type="email" name="email"></div>
+                    <div class="fg"><label>Phone</label><input type="text" name="phone"></div>
+                    <div class="fg"><label>Password*</label><input type="password" name="password" required></div>
+                </div>
+                <button type="submit" class="btn btn-success">Add Teacher</button>
+            </form>
+        </div>
+
+        {% if pending_teachers %}
+        <h3>Pending Teacher Registrations</h3>
+        <table>
+            <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Status</th><th>Submitted</th><th>Action</th></tr></thead>
+            <tbody>
+                {% for p in pending_teachers %}
+                <tr>
+                    <td>{{ p.first_name }} {{ p.last_name }}</td>
+                    <td>{{ p.username }}</td>
+                    <td>{{ p.email|default:"—" }}</td>
+                    <td><span class="badge-{{ p.status }}">{{ p.status|capfirst }}</span></td>
+                    <td style="font-size:12px;color:#666;">{{ p.created_at|date:"d M Y, H:i" }}</td>
+                    <td>
+                        {% if p.status == 'pending' %}
+                        <span id="yn-t{{ p.id }}" style="display:inline;">
+                            <button class="btn btn-success btn-sm" onclick="twostep('t{{ p.id }}')">Yes</button>
+                            <button class="btn btn-danger btn-sm" style="margin-left:4px;">No</button>
+                        </span>
+                        <span id="ad-t{{ p.id }}" style="display:none;">
+                            <small style="color:#666;">Confirm:&nbsp;</small>
+                            <form method="post" action="{% url 'admin_approve_registration' p.id %}" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="approve" class="btn btn-success btn-sm">Approve</button></form>
+                            <form method="post" action="{% url 'admin_approve_registration' p.id %}" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="deny" class="btn btn-danger btn-sm">Deny</button></form>
+                            <button class="btn btn-outline btn-sm" style="margin-left:4px;" onclick="canceltwostep('t{{ p.id }}')">Cancel</button>
+                        </span>
+                        {% else %}<span class="badge-{{ p.status }}">{{ p.status|capfirst }}</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        <h3>Registered Teachers</h3>
+        <table>
+            <thead><tr><th>#</th><th>First Name</th><th>Last Name</th><th>Username</th><th>Email</th><th>Phone</th><th>Remove</th></tr></thead>
+            <tbody>
+                {% for t in teachers %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ t.user.first_name }}</td>
+                    <td>{{ t.user.last_name }}</td>
+                    <td>{{ t.user.username }}</td>
+                    <td>{{ t.user.email|default:"—" }}</td>
+                    <td>{{ t.user.phone|default:"—" }}</td>
+                    <td>
+                        <form method="post" action="{% url 'admin_remove_user' t.user.id %}" onsubmit="return confirm('Remove {{ t.user.get_full_name }}?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">No teachers found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div id="sec-attendance" class="section {% if tab == 'attendance' %}active{% endif %}">
+        <h2>Attendance Records</h2>
+        <form method="get" action="{% url 'admin_dashboard' %}" class="search-form">
+            <input type="hidden" name="tab" value="attendance">
+            <input type="date" name="date" value="{{ date_filter }}">
+            <input type="text" name="aq" placeholder="Student name or reg no..." value="{{ att_query }}">
+            <button type="submit" class="btn">Filter</button>
+            <a href="?tab=attendance" class="btn btn-outline">Clear</a>
+        </form>
+        <table>
+            <thead><tr><th>Date</th><th>Student</th><th>Reg No.</th><th>Status</th><th>Marked By</th></tr></thead>
+            <tbody>
+                {% for r in records %}
+                <tr>
+                    <td>{{ r.date|date:"d M Y" }} ({{ r.date|date:"l" }})</td>
+                    <td>{{ r.student.user.get_full_name }}</td>
+                    <td>{{ r.student.registration_number }}</td>
+                    <td>
+                        {% if r.status == 'present' %}<span class="badge-present">Present</span>
+                        {% else %}<span class="badge-absent">Absent</span>{% endif %}
+                    </td>
+                    <td>{{ r.teacher.user.get_full_name|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">No records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PENDING APPROVALS -->
+    <div id="sec-pending" class="section {% if tab == 'pending' %}active{% endif %}">
+        <h2>Pending Approvals</h2>
+
+        <h3>Students ({{ pending_students.count }})</h3>
+        <table>
+            <thead><tr><th>Name</th><th>Username</th><th>Reg No.</th><th>Email</th><th>Phone</th><th>Status</th><th>Submitted</th><th>Action</th></tr></thead>
+            <tbody>
+                {% for p in pending_students %}
+                <tr>
+                    <td>{{ p.first_name }} {{ p.last_name }}</td>
+                    <td>{{ p.username }}</td>
+                    <td>{{ p.registration_number|default:"—" }}</td>
+                    <td>{{ p.email|default:"—" }}</td>
+                    <td>{{ p.phone|default:"—" }}</td>
+                    <td><span class="badge-{{ p.status }}">{{ p.status|capfirst }}</span></td>
+                    <td style="font-size:12px;color:#666;">{{ p.created_at|date:"d M Y, H:i" }}</td>
+                    <td>
+                        {% if p.status == 'pending' %}
+                        <span id="yn-ps{{ p.id }}" style="display:inline;">
+                            <button class="btn btn-success btn-sm" onclick="twostep('ps{{ p.id }}')">Yes</button>
+                            <button class="btn btn-danger btn-sm" style="margin-left:4px;">No</button>
+                        </span>
+                        <span id="ad-ps{{ p.id }}" style="display:none;">
+                            <small style="color:#666;">Confirm:&nbsp;</small>
+                            <form method="post" action="{% url 'admin_approve_registration' p.id %}" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="approve" class="btn btn-success btn-sm">Approve</button></form>
+                            <form method="post" action="{% url 'admin_approve_registration' p.id %}" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="deny" class="btn btn-danger btn-sm">Deny</button></form>
+                            <button class="btn btn-outline btn-sm" style="margin-left:4px;" onclick="canceltwostep('ps{{ p.id }}')">Cancel</button>
+                        </span>
+                        {% else %}<span class="badge-{{ p.status }}">{{ p.status|capfirst }}</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8">No pending student registrations.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3>Teachers ({{ pending_teachers.count }})</h3>
+        <table>
+            <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Phone</th><th>Status</th><th>Submitted</th><th>Action</th></tr></thead>
+            <tbody>
+                {% for p in pending_teachers %}
+                <tr>
+                    <td>{{ p.first_name }} {{ p.last_name }}</td>
+                    <td>{{ p.username }}</td>
+                    <td>{{ p.email|default:"—" }}</td>
+                    <td>{{ p.phone|default:"—" }}</td>
+                    <td><span class="badge-{{ p.status }}">{{ p.status|capfirst }}</span></td>
+                    <td style="font-size:12px;color:#666;">{{ p.created_at|date:"d M Y, H:i" }}</td>
+                    <td>
+                        {% if p.status == 'pending' %}
+                        <span id="yn-pt{{ p.id }}" style="display:inline;">
+                            <button class="btn btn-success btn-sm" onclick="twostep('pt{{ p.id }}')">Yes</button>
+                            <button class="btn btn-danger btn-sm" style="margin-left:4px;">No</button>
+                        </span>
+                        <span id="ad-pt{{ p.id }}" style="display:none;">
+                            <small style="color:#666;">Confirm:&nbsp;</small>
+                            <form method="post" action="{% url 'admin_approve_registration' p.id %}" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="approve" class="btn btn-success btn-sm">Approve</button></form>
+                            <form method="post" action="{% url 'admin_approve_registration' p.id %}" style="display:inline;">{% csrf_token %}<button type="submit" name="action" value="deny" class="btn btn-danger btn-sm">Deny</button></form>
+                            <button class="btn btn-outline btn-sm" style="margin-left:4px;" onclick="canceltwostep('pt{{ p.id }}')">Cancel</button>
+                        </span>
+                        {% else %}<span class="badge-{{ p.status }}">{{ p.status|capfirst }}</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">No pending teacher registrations.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    function showSection(name) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById('sec-' + name).classList.add('active');
+        history.replaceState(null, '', '?tab=' + name);
+    }
+    function twostep(id) {
+        document.getElementById('yn-' + id).style.display = 'none';
+        document.getElementById('ad-' + id).style.display = 'inline';
+    }
+    function canceltwostep(id) {
+        document.getElementById('yn-' + id).style.display = 'inline';
+        document.getElementById('ad-' + id).style.display = 'none';
+    }
+</script>
+</body>
+</html>

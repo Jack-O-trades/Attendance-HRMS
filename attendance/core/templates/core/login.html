@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — EduTrack</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .box { background: white; padding: 28px 36px; border: 1px solid #ccc; border-radius: 6px; width: 360px; }
+        .box h2 { text-align: center; margin-bottom: 6px; color: #1b3a6b; }
+        .box p { text-align: center; color: #666; font-size: 13px; margin-bottom: 20px; }
+        label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px; margin-top: 12px; }
+        input, select { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        .msg-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 8px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 12px; }
+        button[type="submit"] { width: 100%; padding: 9px; background: #1b3a6b; color: white; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; margin-top: 16px; }
+        button[type="submit"]:hover { background: #1e56a0; }
+        .register-link { text-align: center; margin-top: 14px; font-size: 13px; color: #666; }
+        .register-link a { color: #1b3a6b; font-weight: bold; text-decoration: none; }
+        .register-link a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="box">
+    <h2>🏫 EduTrack</h2>
+    <p>Sign in to your account</p>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="msg-error">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <label for="role">Login As</label>
+        <select name="role" id="role" required>
+            <option value="">— Select Role —</option>
+            <option value="student">Student</option>
+            <option value="teacher">Teacher</option>
+            <option value="admin">Organisation (Admin)</option>
+        </select>
+
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter your username" required autofocus>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+
+        <button type="submit">Sign In</button>
+    </form>
+
+    <div class="register-link">
+        New here? <a href="{% url 'register' %}">Register</a>
+    </div>
+</div>
+</body>
+</html>
