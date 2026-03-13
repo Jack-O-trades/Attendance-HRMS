@@ -5,14 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Verification — EduTrack</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .box { background: white; padding: 28px 36px; border: 1px solid #ccc; border-radius: 6px; width: 400px; text-align: center; }
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 16px; }
+        .box { background: white; padding: 28px 36px; border: 1px solid #ccc; border-radius: 6px; width: 100%; max-width: 420px; text-align: center; }
         .box h2 { color: #1b3a6b; margin-bottom: 10px; }
         .box p { color: #555; font-size: 14px; line-height: 1.6; }
         .ok { color: #155724; background: #d4edda; border: 1px solid #c3e6cb; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
         .err { color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; padding: 12px; border-radius: 4px; margin-bottom: 16px; }
         a { color: #1b3a6b; font-weight: bold; text-decoration: none; }
         a:hover { text-decoration: underline; }
+        @media (max-width: 480px) {
+            .box { padding: 20px 16px; }
+        }
     </style>
 </head>
 <body>

@@ -5,24 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Dashboard — EduTrack</title>
     <style>
+        * { box-sizing: border-box; }
         body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
-        .topbar { background: #1b3a6b; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .topbar { background: #1b3a6b; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
         .topbar h1 { font-size: 18px; margin: 0; }
         .topbar a { color: #f0c040; font-size: 14px; text-decoration: none; }
         .topbar a:hover { text-decoration: underline; }
-        .navbar { background: #e8e8e8; padding: 8px 20px; border-bottom: 1px solid #ccc; }
-        .navbar a { margin-right: 16px; text-decoration: none; color: #1b3a6b; font-size: 14px; font-weight: bold; }
+        .navbar { background: #e8e8e8; padding: 8px 20px; border-bottom: 1px solid #ccc; display: flex; flex-wrap: wrap; gap: 4px; }
+        .navbar a { margin-right: 8px; text-decoration: none; color: #1b3a6b; font-size: 14px; font-weight: bold; white-space: nowrap; }
         .navbar a:hover { text-decoration: underline; }
-        .content { padding: 20px; max-width: 1100px; margin: 0 auto; }
+        .content { padding: 16px; max-width: 1100px; margin: 0 auto; }
         h2 { color: #1b3a6b; border-bottom: 2px solid #1b3a6b; padding-bottom: 6px; margin-bottom: 14px; }
         h3 { color: #333; margin-bottom: 10px; }
         .stats { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-        .stat-box { background: white; border: 1px solid #ccc; border-radius: 4px; padding: 14px 22px; text-align: center; min-width: 120px; }
+        .stat-box { background: white; border: 1px solid #ccc; border-radius: 4px; padding: 14px 22px; text-align: center; min-width: 100px; flex: 1; }
         .stat-box .num { font-size: 28px; font-weight: bold; color: #1b3a6b; }
         .stat-box .lbl { font-size: 12px; color: #666; margin-top: 4px; }
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; background: white; margin-bottom: 14px; }
         th { background: #1b3a6b; color: white; padding: 9px 12px; text-align: left; font-size: 13px; }
-        td { padding: 9px 12px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: middle; }
+        td { padding: 9px 12px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: middle; white-space: nowrap; }
         tr:hover td { background: #f9f9f9; }
         .badge-present { background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
         .badge-absent { background: #f8d7da; color: #721c24; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
@@ -47,11 +49,11 @@
         .btn-success { background: #28a745; color: white; border: none; }
         .btn-success:hover { background: #218838; }
         .btn-sm { padding: 4px 9px; font-size: 12px; }
-        .search-form { display: flex; gap: 8px; margin-bottom: 14px; }
-        .search-form input { padding: 7px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; flex: 1; }
+        .search-form { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+        .search-form input { padding: 7px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; flex: 1; min-width: 120px; }
         .search-form button { padding: 7px 14px; background: #1b3a6b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
-        .grid-2 { display: flex; gap: 20px; margin-bottom: 20px; }
-        .grid-2 .box { flex: 1; background: white; border: 1px solid #ccc; border-radius: 4px; padding: 16px; }
+        .grid-2 { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+        .grid-2 .box { flex: 1; min-width: 240px; background: white; border: 1px solid #ccc; border-radius: 4px; padding: 16px; }
         .card { background: white; border: 1px solid #ccc; border-radius: 4px; padding: 16px; margin-bottom: 20px; }
         .form-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
         .form-row .fg { display: flex; flex-direction: column; min-width: 130px; flex: 1; }
@@ -64,6 +66,18 @@
         .section { display: none; }
         .section.active { display: block; }
         .req-badge { background: #fff3cd; color: #856404; border: 1px solid #ffc107; padding: 2px 9px; border-radius: 10px; font-size: 12px; font-weight: bold; margin-left: 6px; }
+        @media (max-width: 700px) {
+            .topbar { padding: 10px 14px; }
+            .topbar h1 { font-size: 15px; }
+            .navbar { padding: 8px 14px; }
+            .content { padding: 12px; }
+            .grid-2 { flex-direction: column; }
+            .stats { gap: 10px; }
+            .stat-box { padding: 10px 14px; }
+            .stat-box .num { font-size: 22px; }
+            td { white-space: normal; }
+            .form-row .fg { min-width: 100%; }
+        }
     </style>
 </head>
 <body>

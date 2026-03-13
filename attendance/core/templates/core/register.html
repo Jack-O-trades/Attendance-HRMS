@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register — EduTrack</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .box { background: white; padding: 28px 36px; border: 1px solid #ccc; border-radius: 6px; width: 400px; }
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 16px; }
+        .box { background: white; padding: 28px 36px; border: 1px solid #ccc; border-radius: 6px; width: 100%; max-width: 420px; }
         .box h2 { text-align: center; margin-bottom: 6px; color: #1b3a6b; }
         .box p { text-align: center; color: #666; font-size: 13px; margin-bottom: 20px; }
         label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px; margin-top: 12px; }
@@ -19,6 +20,9 @@
         .login-link { text-align: center; margin-top: 14px; font-size: 13px; color: #666; }
         .login-link a { color: #1b3a6b; font-weight: bold; text-decoration: none; }
         .login-link a:hover { text-decoration: underline; }
+        @media (max-width: 480px) {
+            .box { padding: 20px 16px; }
+        }
     </style>
 </head>
 <body>
