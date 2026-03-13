@@ -3,14 +3,15 @@ Django settings for attendance project.
 """
 
 from pathlib import Path
+from decouple import config, Csv
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-q04ojc#2jo0(w8sd$tql%#xlj)94#w!7i9k4wo#bjs3cl!j@y8'
-
-DEBUG = True
-
-ALLOWED_HOSTS = ['*']
+# ── Security ──────────────────────────────────────────────────────────────────
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me-in-production')
+DEBUG = config('DEBUG', default=False, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=Csv())
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -24,6 +25,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',   # ← serve static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -52,15 +54,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'attendance.wsgi.application'
 
+# ── Database ──────────────────────────────────────────────────────────────────
+# Uses DATABASE_URL env var on Vercel (PostgreSQL).
+# Falls back to local SQLite for development.
+DATABASE_URL = config('DATABASE_URL', default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 }
 
 AUTH_USER_MODEL = 'core.CustomUser'
-
 LOGIN_URL = '/'
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -75,26 +77,23 @@ TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+# ── Static Files (WhiteNoise) ─────────────────────────────────────────────────
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles_build' / 'static'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ── Email Configuration ──────────────────────────────────────────────────────
-# By default, emails are printed to the terminal (console backend).
-# To send REAL emails via Gmail, comment out the console line and fill in
-# your Gmail credentials below.
-
-# Option 1: Print emails to terminal (good for testing/demo)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# Option 2: Send real emails via Gmail SMTP
-# Uncomment the lines below and fill in your Gmail address + App Password:
-# (Get App Password from: myaccount.google.com → Security → App passwords)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'ommlipun123@gmail.com'
-EMAIL_HOST_PASSWORD = 'zxgl kdno kfmb ccmi'
-DEFAULT_FROM_EMAIL = 'EduTrack <ommlipun123@gmail.com>'
+# ── Email Configuration ───────────────────────────────────────────────────────
+# All values come from Vercel environment variables.
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='EduTrack <noreply@example.com>')
